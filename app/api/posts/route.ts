@@ -4,13 +4,13 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { author: true }
+    include: { author: true, likes: true, comments: true }
   })
 
   return Response.json(posts)
 }
 
-// ✅ POST — твой рабочий код (можешь оставить с логами)
+// ✅ POST — чтобы создавать посты из формы
 export async function POST(req: Request) {
   console.log("POST HIT")
 
@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     const post = await prisma.post.create({
       data: {
         content: body.content,
-        authorId: body.authorId
+        authorId: body.authorId,
+        image: body.image || null
       }
     })
 
@@ -38,3 +39,35 @@ export async function POST(req: Request) {
     )
   }
 }
+
+
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get('id')
+
+  if (!id) {
+    return Response.json({ error: 'no id' }, { status: 400 })
+  }
+
+  await prisma.post.delete({
+    where: { id }
+  })
+
+  return Response.json({ success: true })
+}
+
+export async function PUT(req: Request) {
+  const body = await req.json()
+
+  const post = await prisma.post.update({
+    where: { id: body.id },
+    data: {
+      content: body.content,
+      image: body.image
+    }
+  })
+
+  return Response.json(post)
+}
+
+
