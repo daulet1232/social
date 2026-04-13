@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import { getServerSession } from "next-auth"
+import { authOptions } from "../auth/[...nextauth]/auth-options"
 
 // ✅ GET — чтобы видеть посты в браузере
 export async function GET() {
@@ -15,14 +17,20 @@ export async function POST(req: Request) {
   console.log("POST HIT")
 
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json()
     console.log("BODY:", body)
 
     const post = await prisma.post.create({
       data: {
         content: body.content,
-        authorId: body.authorId,
-        image: body.image || null
+        image: body.image || null,
+        authorId: session.user.id // 🔥 ВОТ ГЛАВНОЕ
       }
     })
 

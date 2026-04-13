@@ -1,4 +1,7 @@
 'use client'
+import { useSession, signIn, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, useRef } from 'react'
 
 type Post = {
   id: string
@@ -18,9 +21,11 @@ type Post = {
   }[]
 }
 
-import { useEffect, useState, useRef } from 'react'
+
 
 export default function FeedPage() {
+
+    
   const [posts, setPosts] = useState<Post[]>([])
   const [content, setContent] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -39,6 +44,14 @@ const editInputRef = useRef<HTMLInputElement>(null)
 
 const fileRef = useRef<HTMLInputElement>(null)
 
+const { data: session, status } = useSession()
+const router = useRouter()
+
+useEffect(() => {
+  if (status === "unauthenticated") {
+    router.push('/')
+  }
+}, [status, router])
 
   // 🔹 загрузка постов
   const fetchPosts = async () => {
@@ -56,8 +69,6 @@ const fileRef = useRef<HTMLInputElement>(null)
 
     load()
   }, [])
-
-
 
 
 
@@ -88,7 +99,7 @@ const createPost = async () => {
     },
     body: JSON.stringify({
       content,
-      authorId: 'daulet',
+      authorId: session?.user.id,
       image: imageUrl
     })
   })
@@ -164,6 +175,8 @@ useEffect(() => {
   }
 }, [editingId])
 
+if (status === "loading") return <p>Loading...</p>
+
   return (
     <div
       style={{
@@ -175,6 +188,18 @@ useEffect(() => {
         minHeight: '100vh'
       }}
     >
+      <button
+  onClick={() => signOut({ callbackUrl: '/' })}
+  style={{
+    padding: '6px 10px',
+    borderRadius: 6,
+    background: 'black',
+    color: 'white',
+    cursor: 'pointer'
+  }}
+>
+  Logout
+</button>
       <h1 style={{ textAlign: 'center', marginBottom: 20 }}>
         Feed
       </h1>
