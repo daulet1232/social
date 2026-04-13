@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
 export default function RegisterPage() {
   const router = useRouter()
 
@@ -21,16 +25,51 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ textAlign: "center", marginTop: 100 }}>
-      <h1>Register</h1>
+    <div className="flex h-screen items-center justify-center bg-gray-100">
 
-      <input placeholder="name" onChange={(e) => setName(e.target.value)} />
-      <input placeholder="email" onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="password" type="password" onChange={(e) => setPassword(e.target.value)} />
+      <Card className="w-[360px] shadow-xl">
 
-      <button onClick={register}>
-        Создать аккаунт
-      </button>
+        <CardHeader>
+          <CardTitle className="text-center text-xl">
+            Create account
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+
+          <Input
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <Input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <Button className="w-full" onClick={register}>
+            Create account
+          </Button>
+
+          <p
+            className="text-center text-sm text-gray-500 cursor-pointer"
+            onClick={() => router.push('/')}
+          >
+            Already have an account? Sign in
+          </p>
+
+        </CardContent>
+      </Card>
+
     </div>
   )
 }
