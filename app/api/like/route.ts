@@ -1,39 +1,38 @@
-import { prisma } from '@/lib/prisma'
-
-const DEMO_USER_ID = 'daulet'
+import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options"
 
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
   const { postId } = await req.json()
 
-  // 🔍 проверяем есть ли лайк
-  const existing = await prisma.like.findUnique({
+  const userId = session.user.id
+
+  const existingLike = await prisma.like.findFirst({
     where: {
-      postId_userId: {
-        postId,
-        userId: DEMO_USER_ID
-      }
+      postId,
+      userId
     }
   })
 
-  if (existing) {
-    // ❌ убрать лайк
+  // toggle logic
+  if (existingLike) {
     await prisma.like.delete({
-      where: {
-        postId_userId: {
-          postId,
-          userId: DEMO_USER_ID
-        }
-      }
+      where: { id: existingLike.id }
     })
 
     return Response.json({ liked: false })
   }
 
-  // ✅ поставить лайк
   await prisma.like.create({
     data: {
       postId,
-      userId: DEMO_USER_ID
+      userId
     }
   })
 

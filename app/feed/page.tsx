@@ -2,7 +2,10 @@
 import { useSession, signIn, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from 'react'
-
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 type Post = {
   id: string
   content: string
@@ -43,6 +46,10 @@ const [editText, setEditText] = useState('')
 const editInputRef = useRef<HTMLInputElement>(null)
 
 const fileRef = useRef<HTMLInputElement>(null)
+
+
+const createFileRef = useRef<HTMLInputElement>(null)
+const editFileRef = useRef<HTMLInputElement>(null)
 
 const { data: session, status } = useSession()
 const router = useRouter()
@@ -177,297 +184,262 @@ useEffect(() => {
 
 if (status === "loading") return <p>Loading...</p>
 
-  return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: '0 auto',
-        padding: 20,
-        fontFamily: 'Arial, sans-serif',
-        background: '#f6f7f9',
-        minHeight: '100vh'
-      }}
-    >
-      <button
-  onClick={() => signOut({ callbackUrl: '/' })}
-  style={{
-    padding: '6px 10px',
-    borderRadius: 6,
-    background: 'black',
-    color: 'white',
-    cursor: 'pointer'
-  }}
->
-  Logout
-</button>
-      <h1 style={{ textAlign: 'center', marginBottom: 20 }}>
-        Feed
-      </h1>
 
-      {/* форма */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 10,
-          marginBottom: 20,
-          background: 'white',
-          padding: 15,
-          borderRadius: 12,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-        }}
+
+
+
+  return (
+  <div className="min-h-screen bg-gray-100">
+
+    {/* HEADER */}
+    <div className="max-w-2xl mx-auto pt-6 flex justify-between items-center">
+      <h1 className="text-2xl font-bold">Feed</h1>
+
+      <Button
+        variant="destructive"
+        onClick={() => signOut({ callbackUrl: '/' })}
       >
-        <input
+        Logout
+      </Button>
+    </div>
+
+    {/* CREATE POST */}
+    <Card className="max-w-2xl mx-auto mt-6">
+      <CardContent className="p-4 space-y-3">
+
+        <Input
           ref={inputRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Напиши пост..."
-          style={{
-            flex: 1,
-            padding: 10,
-            borderRadius: 8,
-            border: '1px solid #ddd',
-            outline: 'none'
-          }}
-          
         />
-       
+
+        {/* hidden file input */}
         <input
-        ref={fileRef}
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files?.[0]
-    if (file) setImage(file)
-  }}
-/>
-{previewImage && (
-  <div style={{ marginBottom: 10 }}>
-    <img
-      src={previewImage}
-      style={{
-        width: 120,
-        borderRadius: 10
-      }}
-    />
-
-    <p style={{ fontSize: 12, color: '#666' }}>
-      текущая картинка
-    </p>
-  </div>
-)}
-        <button
-          onClick={createPost}
-          style={{
-            padding: '10px 16px',
-            background: '#000',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer'
+          ref={createFileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) setImage(file)
           }}
-        >
-          отправить
-        </button>
-      </div>
+        />
 
-      {/* список постов */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            style={{
-              background: 'white',
-              padding: 15,
-              borderRadius: 12,
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-              animation: 'fadeIn 0.25s ease',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform =
-                'translateY(-3px)'
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform =
-                'translateY(0)'
-            }}
+        {/* preview */}
+        {previewImage && (
+          <img
+            src={previewImage}
+            className="w-32 rounded-lg"
+          />
+        )}
+
+        {/* actions */}
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            onClick={() => createFileRef.current?.click()}
           >
+            📎 Attach
+          </Button>
+
+          <Button onClick={createPost} className="flex-1">
+            Post
+          </Button>
+        </div>
+
+      </CardContent>
+    </Card>
+
+    {/* POSTS LIST */}
+    <div className="max-w-2xl mx-auto mt-6 space-y-4">
+
+      {posts.map((post) => (
+        <Card key={post.id}>
+          <CardContent className="p-4 space-y-3">
+
+            {/* EDIT MODE */}
             {editingId === post.id ? (
-  <div>
-    <input
-    ref={editInputRef}
-      value={editText}
-      onChange={(e) => setEditText(e.target.value)}
-    />
+              <div className="space-y-3">
 
-    {/* КАРТИНКА */}
-    {editPreview && (
-      <img
-        src={editPreview}
-        style={{ width: 120, borderRadius: 10, marginTop: 10 }}
-      />
-    )}
-
-    <input
-      type="file"
-      accept="image/*"
-      onChange={(e) => {
-        const file = e.target.files?.[0]
-        if (file) {
-          setEditImage(file)
-          setEditPreview(URL.createObjectURL(file))
-        }
-      }}
-    />
-{/* inline edit */}
-    <button
-      onClick={async () => {
-        let imageUrl = editPreview || ''
-
-        if (editImage) {
-          const formData = new FormData()
-          formData.append('file', editImage)
-
-          const res = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-          })
-
-          const data = await res.json()
-          imageUrl = data.url
-        }
-
-        await fetch('/api/posts', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: post.id,
-            content: editText,
-            image: imageUrl
-          })
-        })
-
-        setEditingId(null)
-        setEditText('')
-        setEditImage(null)
-        setEditPreview(null)
-        fetchPosts()
-      }}
-    >
-      Save
-    </button>
-
-    <button
-      onClick={() => {
-        setEditingId(null)
-        setEditText('')
-        setEditImage(null)
-        setEditPreview(null)
-      }}
-    >
-      Cancel
-    </button>
-  </div>
-) : (
-  <>
-    <p>{post.content}</p>
-
-    {post.image && (
-      <img
-        src={post.image}
-        style={{ width: '100%', borderRadius: 10 }}
-      />
-    )}
-  </>
-)}
-
-            <small style={{ color: '#666' }}>
-              {post.author?.email}
-            </small>
-          
-
-            <div style={{ marginTop: 10, display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => deletePost(post.id)}
-                style={{
-                  padding: '6px 10px',
-                  border: 'none',
-                  borderRadius: 6,
-                  background: '#ff4d4f',
-                  color: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                Delete
-              </button>
-
-              <button
-                onClick={() => editPost(post)}
-                style={{
-                  padding: '6px 10px',
-                  border: 'none',
-                  borderRadius: 6,
-                  background: '#1677ff',
-                  color: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                Edit
-              </button>
-
-              <button onClick={() => likePost(post.id)}>
-  ❤️ {post.likes?.length ?? 0}
-</button>
-<br />
-<div style={{ marginTop: 10 }}>
-                <input
-                    value={commentText[post.id] || ''}
-                    onChange={(e) =>
-                    setCommentText((prev) => ({
-                        ...prev,
-                        [post.id]: e.target.value
-                    }))
-                    }
-                    placeholder="Комментарий..."
-                    style={{
-                    padding: '6px 10px',
-                    borderRadius: 6,
-                    border: '1px solid #ddd',
-                    outline: 'none',
-                    width: '100%'
-                    }}
+                <Input
+                  ref={editInputRef}
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
                 />
 
-                <button
-                    onClick={() => addComment(post.id)}
-                    style={{
-                    padding: '6px 10px',
-                    borderRadius: 6,
-                    background: '#28a745',
-                    color: 'white',
-                    cursor: 'pointer',
-                    marginTop: '8px'
+                {/* hidden edit file input */}
+                <input
+                  ref={editFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setEditImage(file)
+                      setEditPreview(URL.createObjectURL(file))
+                    }
+                  }}
+                />
+
+                {/* preview */}
+                {editPreview && (
+                  <img
+                    src={editPreview}
+                    className="w-32 rounded-lg"
+                  />
+                )}
+
+                {/* edit actions */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => editFileRef.current?.click()}
+                  >
+                    📎 Attach
+                  </Button>
+
+                  <Button
+                    onClick={async () => {
+                      let imageUrl = editPreview || ''
+
+                      if (editImage) {
+                        const formData = new FormData()
+                        formData.append('file', editImage)
+
+                        const res = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData
+                        })
+
+                        const data = await res.json()
+                        imageUrl = data.url
+                      }
+
+                      await fetch('/api/posts', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: post.id,
+                          content: editText,
+                          image: imageUrl
+                        })
+                      })
+
+                      setEditingId(null)
+                      setEditText('')
+                      setEditImage(null)
+                      setEditPreview(null)
+                      fetchPosts()
                     }}
-                >
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingId(null)
+                      setEditText('')
+                      setEditImage(null)
+                      setEditPreview(null)
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+
+              </div>
+            ) : (
+              <>
+                {/* CONTENT */}
+                <p>{post.content}</p>
+
+                {post.image && (
+                  <img
+                    src={post.image}
+                    className="rounded-lg w-full"
+                  />
+                )}
+
+                {/* AUTHOR */}
+                <p className="text-xs text-gray-400">
+                  {post.author?.email}
+                </p>
+
+                {/* ACTIONS */}
+                <div className="flex gap-2 pt-2">
+
+                  <Button
+                    variant="destructive"
+                    onClick={() => deletePost(post.id)}
+                  >
+                    Delete
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => editPost(post)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => likePost(post.id)}
+                  >
+                    ❤️ {post.likes?.length ?? 0}
+                  </Button>
+
+                </div>
+
+                {/* COMMENTS */}
+                <div className="pt-3 space-y-2">
+
+                  <Input
+                    value={commentText[post.id] || ''}
+                    onChange={(e) =>
+                      setCommentText((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.value
+                      }))
+                    }
+                    placeholder="Комментарий..."
+                  />
+
+                  <Button
+                    size="sm"
+                    onClick={() => addComment(post.id)}
+                  >
                     Send
-                </button>
+                  </Button>
 
-                {/* Список комментариев */}
-                <div style={{ marginTop: 10 }}>
+                  <Separator />
+
+                  <div className="space-y-1">
                     {post.comments?.map((comment) => (
-                    <p key={comment.id} style={{ fontSize: 12 }}>
+                      <p
+                        key={comment.id}
+                        className="text-sm text-gray-600"
+                      >
                         💬 {comment.content}
-                    </p>
+                      </p>
                     ))}
-                </div>
+                  </div>
+
                 </div>
 
-            </div>
-          </div>
-        ))}
-      </div>
+              </>
+            )}
+
+          </CardContent>
+        </Card>
+      ))}
+
     </div>
-  )
+  </div>
+)
 }
 
     
