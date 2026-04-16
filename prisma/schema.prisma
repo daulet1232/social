@@ -21,6 +21,7 @@ model User {
 
   posts     Post[]
   likes     Like[]
+  comments  Comment[]
 }
 
 model Like {
@@ -36,10 +37,16 @@ model Like {
 }
 
 model Comment {
-  id      String @id @default(uuid())
-  content String
-  postId  String
-  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id        String @id @default(cuid())
+  content   String
+
+  postId    String
+  post      Post   @relation(fields: [postId], references: [id])
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 model Post {

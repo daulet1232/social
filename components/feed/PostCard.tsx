@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import CommentSection from "./CommentSection"
 import { Post } from "@/types/post"
+import { useSession } from "next-auth/react"
+
+
 
 
 
@@ -22,6 +25,8 @@ export default function PostCard({ post, onChange }: Props) {
 
   const editFileRef = useRef<HTMLInputElement>(null)
   const editInputRef = useRef<HTMLInputElement>(null)
+
+  const { data: session } = useSession()
 
   const like = async () => {
     await fetch("/api/like", {
@@ -178,14 +183,16 @@ export default function PostCard({ post, onChange }: Props) {
           </p>
 
           <div className="flex gap-2 mt-3">
-            <Button variant="destructive" onClick={remove}>
-              Delete
-            </Button>
-
+            {session?.user?.id === post.authorId && (
+  <Button variant="destructive" onClick={remove}>
+    Delete
+  </Button>
+)}
+            {session?.user?.id === post.authorId && (
             <Button variant="secondary" onClick={() => setEditing(true)}>
               Edit
             </Button>
-
+            )}
             <Button variant="outline" onClick={like}>
               ❤️ {post.likes?.length ?? 0}
             </Button>
